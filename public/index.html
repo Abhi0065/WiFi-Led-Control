@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Bulb Control</title>
+    <style>
+      * {
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+        user-select: none;
+        padding: 0;
+        margin: 0;
+      }
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #1e1e1e;
+        color: #f0f0f0;
+        padding: 20px;
+        text-align: center;
+      }
+      h1 {
+        color: #ffffff;
+        text-align: center;
+        font-size: 25px;
+      }
+      .container {
+        max-width: 600px;
+        width: 90%;
+        margin: auto;
+        margin-top: 2rem;
+        padding: 20px;
+        background: #333;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        text-align: center;
+      }
+      .leds {
+        display: flex;
+        flex-direction: row;
+        padding: 10px 0;
+      }
+
+      .led1,
+      .led2 {
+        position: relative;
+        flex: 1;
+        padding: 10px;
+        margin: 10px;
+        border-radius: 8px;
+        text-align: center;
+      }
+      .status {
+        font-size: 12px;
+        text-align: center;
+        letter-spacing: 1px;
+      }
+      .ledc {
+        text-align: center;
+      }
+      .toggle-switch {
+        position: absolute;
+        left: 2px;
+        width: 80px;
+        height: 34px;
+        border-radius: 20px;
+        position: relative;
+        margin: 15px 0 10px;
+      }
+
+      .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+
+      .toggle-switch label {
+        position: absolute;
+        cursor: pointer;
+        background-color: #db1e1e;
+        border-radius: 20px;
+        width: 100%;
+        height: 100%;
+        transition: background-color 0.3s;
+      }
+
+      .toggle-switch label:before {
+        content: "";
+        position: absolute;
+        border-radius: 50%;
+        background-color: white;
+        width: 30px;
+        height: 30px;
+        transition: transform 0.3s;
+        transform: translateX(2px);
+        top: 2px;
+        left: 0;
+      }
+
+      .toggle-switch input:checked + label {
+        background-color: #4edb16;
+      }
+
+      .toggle-switch input:checked + label:before {
+        transform: translateX(48px);
+      }
+
+      footer {
+        position: absolute;
+        bottom: 0;
+        padding: 5px;
+        font-size: 10px;
+        color: #fff;
+        text-align: center;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Control LEDs</h1>
+      <div class="leds">
+        <div class="led1">
+          <p class="ledc">LED 1</p>
+          <div class="toggle-switch">
+            <input type="checkbox" id="led1" />
+            <label for="led1"></label>
+          </div>
+          <p id="status1" class="status">State OFF</p>
+        </div>
+        <div class="led2">
+          <p>LED 2</p>
+          <div class="toggle-switch">
+            <input type="checkbox" id="led2" />
+            <label for="led2"></label>
+          </div>
+          <p id="status2" class="status">State OFF</p>
+        </div>
+      </div>
+    </div>
+    <footer>Made By Abhishek</footer>
+
+    <script>
+      function leds(toggleId, statusId, ledNumber) {
+        const toggle = document.getElementById(toggleId);
+        const status = document.getElementById(statusId);
+
+        let isOn = localStorage.getItem(`ledState${ledNumber}`) === "true";
+
+        if (isOn) {
+          toggle.checked = true;
+          status.innerText = "State ON";
+        }
+
+        toggle.addEventListener("change", async () => {
+          isOn = toggle.checked;
+          localStorage.setItem(`ledState${ledNumber}`, isOn);
+
+          if (isOn) {
+            status.innerText = "State ON";
+            try {
+              await fetch(`/on${ledNumber}`);
+            } catch (error) {
+              console.log("Error turning on LED", ledNumber, error);
+            }
+          } else {
+            status.innerText = "State OFF";
+            try {
+              await fetch(`/off${ledNumber}`);
+            } catch (error) {
+              console.log("Error turning off LED", ledNumber, error);
+            }
+          }
+        });
+      }
+
+      leds("led1", "status1", "1");
+      leds("led2", "status2", "2");
+    </script>
+  </body>
+</html>
